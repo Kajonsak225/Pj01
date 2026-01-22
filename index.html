@@ -2,82 +2,63 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>Smart Farm Dashboard</title>
+  <title>Smart Farm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Firebase v8 (รองรับ GitHub Pages) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #e9f7f2;
+      font-family: 'Segoe UI', sans-serif;
+      background: #eaf7f1;
       text-align: center;
+      margin: 0;
+      padding: 30px;
     }
 
     h1 {
-      margin-top: 25px;
-      color: #1b4332;
+      color: #1b5e20;
     }
 
-    .cards {
+    .container {
       display: flex;
       justify-content: center;
-      gap: 25px;
+      gap: 20px;
       flex-wrap: wrap;
       margin-top: 30px;
     }
 
     .card {
-      background: white;
+      background: #fff;
       width: 220px;
-      height: 220px;
-      border-radius: 16px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .icon {
-      font-size: 46px;
-    }
-
-    .label {
-      font-size: 18px;
-      font-weight: bold;
-      margin-top: 10px;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
 
     .value {
-      font-size: 34px;
+      font-size: 32px;
       font-weight: bold;
-      color: #2d6a4f;
-      margin-top: 10px;
-    }
-
-    .unit {
-      font-size: 15px;
-      color: #555;
+      margin: 10px 0;
+      color: #2e7d32;
     }
 
     button {
-      margin-top: 25px;
-      padding: 12px 24px;
+      margin-top: 30px;
+      padding: 12px 30px;
+      font-size: 16px;
       border: none;
       border-radius: 25px;
-      background: #20c997;
+      background: #1abc9c;
       color: white;
-      font-size: 16px;
       cursor: pointer;
     }
 
-    .status {
+    .error {
+      color: red;
       margin-top: 15px;
-      font-size: 14px;
-      color: #555;
     }
   </style>
 </head>
@@ -86,74 +67,63 @@
 
   <h1>🌿 Smart Farm</h1>
 
-  <div class="cards">
-
+  <div class="container">
     <div class="card">
-      <div class="icon">🌡️</div>
-      <div class="label">อุณหภูมิ</div>
-      <div class="value"><span id="temp">--</span></div>
-      <div class="unit">°C</div>
+      <h3>🌡 อุณหภูมิ</h3>
+      <div id="temp" class="value">--</div>
+      <div>°C</div>
     </div>
 
     <div class="card">
-      <div class="icon">💧</div>
-      <div class="label">ความชื้นอากาศ</div>
-      <div class="value"><span id="humi">--</span></div>
-      <div class="unit">%</div>
+      <h3>💧 ความชื้นอากาศ</h3>
+      <div id="humi" class="value">--</div>
+      <div>%</div>
     </div>
 
     <div class="card">
-      <div class="icon">🌱</div>
-      <div class="label">ความชื้นดิน</div>
-      <div class="value"><span id="soil">--</span></div>
-      <div class="unit">%</div>
+      <h3>🌱 ความชื้นดิน</h3>
+      <div id="soil" class="value">--</div>
+      <div>%</div>
     </div>
-
   </div>
 
-  <button onclick="readData()">🔄 อัปเดตค่า</button>
+  <button onclick="loadData()">🔄 อัปเดตค่า</button>
 
-  <div class="status" id="status">
-    กำลังโหลดข้อมูล...
-  </div>
+  <div id="error" class="error"></div>
 
   <script>
-    // 🔑 Firebase Web Config (ของคุณ)
-    var firebaseConfig = {
-      apiKey: "AIzaSyCiJicTKjqo02N5tl2Tcf1iaW-vkWdCvaM",
-      databaseURL: "https://project01-21d95-default-rtdb.asia-southeast1.firebasedatabase.app"
+    // 🔥 Firebase Config (แก้เป็นของคุณ)
+    const firebaseConfig = {
+      apiKey: "API_KEY_ของคุณ",
+      authDomain: "xxx.firebaseapp.com",
+      databaseURL: "https://xxx-default-rtdb.firebaseio.com",
+      projectId: "xxx",
     };
 
     firebase.initializeApp(firebaseConfig);
-    var db = firebase.database();
+    const database = firebase.database();
 
-    function readData() {
-      db.ref("/sensor").once("value")
-        .then(function(snapshot) {
-          var data = snapshot.val();
-
-          if (!data) {
-            document.getElementById("status").innerText =
-              "❌ ไม่พบข้อมูลใน Firebase";
-            return;
+    function loadData() {
+      database.ref("sensor").once("value")
+        .then(snapshot => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            document.getElementById("temp").innerText = data.temperature ?? "--";
+            document.getElementById("humi").innerText = data.humidity ?? "--";
+            document.getElementById("soil").innerText = data.soil ?? "--";
+            document.getElementById("error").innerText = "";
+          } else {
+            document.getElementById("error").innerText = "❌ ไม่พบข้อมูลใน Firebase";
           }
-
-          document.getElementById("temp").innerText = data.temperature;
-          document.getElementById("humi").innerText = data.humidity;
-          document.getElementById("soil").innerText = data.soil;
-
-          document.getElementById("status").innerText =
-            "✅ อัปเดตล่าสุดเรียบร้อย";
         })
-        .catch(function(error) {
+        .catch(error => {
+          document.getElementById("error").innerText = "❌ เชื่อม Firebase ไม่ได้";
           console.error(error);
-          document.getElementById("status").innerText =
-            "❌ อ่านข้อมูลล้มเหลว";
         });
     }
 
-    // โหลดหน้าเว็บแล้วอ่านค่าอัตโนมัติ
-    window.onload = readData;
+    // โหลดครั้งแรกอัตโนมัติ
+    loadData();
   </script>
 
 </body>
