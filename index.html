@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Farm Dashboard</title>
+
+  <!-- Firebase v8 (รองรับ GitHub Pages) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #e9f7f2;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 25px;
+      color: #1b4332;
+    }
+
+    .cards {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      flex-wrap: wrap;
+      margin-top: 30px;
+    }
+
+    .card {
+      background: white;
+      width: 220px;
+      height: 220px;
+      border-radius: 16px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .icon {
+      font-size: 46px;
+    }
+
+    .label {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .value {
+      font-size: 34px;
+      font-weight: bold;
+      color: #2d6a4f;
+      margin-top: 10px;
+    }
+
+    .unit {
+      font-size: 15px;
+      color: #555;
+    }
+
+    button {
+      margin-top: 25px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 25px;
+      background: #20c997;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🌿 Smart Farm</h1>
+
+  <div class="cards">
+
+    <div class="card">
+      <div class="icon">🌡️</div>
+      <div class="label">อุณหภูมิ</div>
+      <div class="value"><span id="temp">--</span></div>
+      <div class="unit">°C</div>
+    </div>
+
+    <div class="card">
+      <div class="icon">💧</div>
+      <div class="label">ความชื้นอากาศ</div>
+      <div class="value"><span id="humi">--</span></div>
+      <div class="unit">%</div>
+    </div>
+
+    <div class="card">
+      <div class="icon">🌱</div>
+      <div class="label">ความชื้นดิน</div>
+      <div class="value"><span id="soil">--</span></div>
+      <div class="unit">%</div>
+    </div>
+
+  </div>
+
+  <button onclick="readData()">🔄 อัปเดตค่า</button>
+
+  <div class="status" id="status">
+    กำลังโหลดข้อมูล...
+  </div>
+
+  <script>
+    // 🔑 Firebase Web Config (ของคุณ)
+    var firebaseConfig = {
+      apiKey: "AIzaSyCiJicTKjqo02N5tl2Tcf1iaW-vkWdCvaM",
+      databaseURL: "https://project01-21d95-default-rtdb.asia-southeast1.firebasedatabase.app"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
+
+    function readData() {
+      db.ref("/sensor").once("value")
+        .then(function(snapshot) {
+          var data = snapshot.val();
+
+          if (!data) {
+            document.getElementById("status").innerText =
+              "❌ ไม่พบข้อมูลใน Firebase";
+            return;
+          }
+
+          document.getElementById("temp").innerText = data.temperature;
+          document.getElementById("humi").innerText = data.humidity;
+          document.getElementById("soil").innerText = data.soil;
+
+          document.getElementById("status").innerText =
+            "✅ อัปเดตล่าสุดเรียบร้อย";
+        })
+        .catch(function(error) {
+          console.error(error);
+          document.getElementById("status").innerText =
+            "❌ อ่านข้อมูลล้มเหลว";
+        });
+    }
+
+    // โหลดหน้าเว็บแล้วอ่านค่าอัตโนมัติ
+    window.onload = readData;
+  </script>
+
+</body>
+</html>
